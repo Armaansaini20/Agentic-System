@@ -92,23 +92,26 @@ The application will be available locally at http://localhost:8501.
 ---
 
 ## 🔌 Integrated APIs & Tools
-    Tool          |       Source         |    Planner
- 1. Date Planner  |       TomTom         | Finds romantic venues in specific locations.
- 2. Compatibility |     Custom Logic     | Calculates "Match Scores" based on user interests.
- 3. Weather       |     OpenWeather      | Checks date suitability for outdoor activities.
- 4. News          |       NewsAPI        | Provides context for social media/ops updates.
- 5. Currency      |  ExchangeRate-API    | Helps with international marketing budget planning.
- 6. Github        |     GitHub API       | Manages repository tasks, creates issues, and summarizes PRs for dev ops.
+
+| # | Tool | Source | Planner / Purpose |
+| :--- | :--- | :--- | :--- |
+| 1 | **Date Planner** | TomTom | Finds romantic venues in specific locations. |
+| 2 | **Compatibility** | Custom Logic | Calculates "Match Scores" based on user interests. |
+| 3 | **Weather** | OpenWeather | Checks date suitability for outdoor activities. |
+| 4 | **News** | NewsAPI | Provides context for social media/ops updates. |
+| 5 | **Currency** | ExchangeRate-API | Helps with international marketing budget planning. |
+| 6 | **GitHub** | GitHub API | Manages repository tasks, creates issues, and summarizes PRs for dev ops. |
 
 ## Example Prompts to Test 
-The Matchmaker: "I matched with someone who loves Sushi and Hiking in Bangalore. Suggest a compatibility score and 3 cafes for our first date.
-"The Ops Manager: "What is the current weather in Mumbai, and is it a good day for an outdoor rooftop event?
-"The Multi-Tasker: "Convert 10,000 INR to USD and show me the latest news in India for our social media update."
+1. The Matchmaker: "I matched with someone who loves Sushi and Hiking in Bangalore. Suggest a compatibility score and 3 cafes for our first date.
+2. "The Ops Manager: "What is the current weather in Mumbai, and is it a good day for an outdoor rooftop event?
+3. "The Multi-Tasker: "Convert 10,000 INR to USD and show me the latest news in India for our social media update."
 
-## ⚠️ Known Limitations & TradeoffsAPI Quotas: 
+## ⚠️ Known Limitations & Tradeoffs API Quotas: 
 1. The system is optimized for the Gemini Free Tier; however, intensive parallel queries may hit RPM (Requests Per Minute) limits.
 2. Verification Hallucination: In rare cases, the Verifier might describe a venue's "vibe" based on training data rather than real-time reviews.
 3. Stateless Conversations: The current version is optimized for single-turn complex tasks. Multi-turn chat memory is a roadmap item.
+
 
 
 
