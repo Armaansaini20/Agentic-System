@@ -15,12 +15,20 @@ from tools.date_planner_tool import DatePlannerTool
 # UI Configuration
 st.set_page_config(page_title="TrulyMadly AI Intern", page_icon="❤️", layout="wide")
 
-# --- PRICING CONSTANTS (Gemini 3 Flash - 2026) ---
+# --- INITIALIZE SESSION STATE ---
+# We need these to persist data across the st.rerun() call
+if "total_cost" not in st.session_state:
+    st.session_state.total_cost = 0.0
+if "last_answer" not in st.session_state:
+    st.session_state.last_answer = None
+if "last_query" not in st.session_state:
+    st.session_state.last_query = None
+
+# --- PRICING CONSTANTS ---
 COST_PER_1M_INPUT = 0.50  
 COST_PER_1M_OUTPUT = 3.00
 
 def calculate_cost(metadata):
-    """Calculates USD cost based on token metadata."""
     if not metadata: return 0.0
     input_cost = (metadata.prompt_token_count / 1_000_000) * COST_PER_1M_INPUT
     output_cost = (metadata.candidates_token_count / 1_000_000) * COST_PER_1M_OUTPUT
@@ -30,48 +38,69 @@ def calculate_cost(metadata):
 @st.cache_data(ttl=3600, show_spinner=False)
 def get_ai_plan(query, _tool_defs):
     planner = PlannerAgent()
-    # Capturing metadata requires accessing the response object from the agent's internal model call
-    # For simplicity, we assume your PlannerAgent returns the plan. 
-    # In production, you'd modify the agent to return (plan, metadata).
-    plan = planner.create_plan(query, _tool_defs)
-    return plan
+    return planner.create_plan(query, _tool_defs)
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def get_ai_execution(plan_json):
     executor = ExecutorAgent()
-    executor.tools = {
-        "github_tool": GitHubTool(), "weather_tool": WeatherTool(),
-        "news_tool": NewsTool(), "currency_tool": CurrencyTool(),
-        "compatibility_tool": CompatibilityTool(), "date_planner_tool": DatePlannerTool()
-    }
     return executor.execute_plan(json.loads(plan_json))
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def get_ai_verification(query, results_json):
     verifier = VerifierAgent()
-    # Directly using the model here to ensure we get usage_metadata
-    prompt = f"User Query: {query}\nTool Results: {results_json}\nVerify and provide a friendly response."
-    response = verifier.model.generate_content(prompt)
-    return response.text, response.usage_metadata
+    return verifier.verify_and_respond(query, results_json)
 
 # --- UI SETUP ---
 st.title("❤️ TrulyMadly AI Ops Assistant")
 st.markdown("Automating matchmaking logic and operations with GenAI.")
 
-# Sidebar for Stats & Cost Tracking
+st.markdown("Would work for 5 queries due to rate limiting on Gemini Free Tier - For more testing input own Gemini Key")
+
+# --- SIDEBAR: Ops Dashboard, Agents & Tools ---
 with st.sidebar:
     st.header("📊 Ops Dashboard")
-    if "total_cost" not in st.session_state:
-        st.session_state.total_cost = 0.0
     
+    # Metric updates instantly because of the st.rerun() in the loop below
     st.metric("Total Session Spend", f"${st.session_state.total_cost:.6f}")
     
     if st.button("Reset Session Costs"):
         st.session_state.total_cost = 0.0
+        st.session_state.last_answer = None
         st.rerun()
     
     st.divider()
-    st.info("Caching: Active ✅\nParallelism: Ready 🚀")
+    
+    st.subheader("🤖 Connected Agents")
+    st.success("🧠 Planner Agent: ONLINE")
+    st.success("⚙️ Executor Agent: ONLINE")
+    st.success("🔍 Verifier Agent: ONLINE")
+    
+    st.divider()
+    
+    st.subheader("🛠️ Operational Tools")
+    st.info("📂 GitHub Operations")
+    st.info("☁️ Weather Insights")
+    st.info("📰 Global News")
+    st.info("💱 Currency Exchange")
+    st.info("🤝 Compatibility Engine")
+    st.info("📍 Date Venue Planner")
+    
+    st.divider()
+    st.caption("Caching: Active ✅ | Parallelism: Multi-threaded 🚀")
+
+# --- SAMPLE QUERIES SECTION ---
+st.subheader("💡 Sample Queries")
+samples = {
+    "Select a sample query...": "",
+    "Compatibility Check (Planner + Compatibility Tool)": "I matched with someone who loves Sushi and Hiking. We are in Bangalore. Suggest a compatibility score.",
+    "Date Planning (Planner + Date Tool)": "Find 3 romantic cafes in Bellandur, Bangalore.",
+    "Weather + News (Parallel Execution: Multi-Agent)": "What is the weather in Delhi and show me the latest tech news in India.",
+    "Currency Budget (Planner + Currency Tool)": "Convert 10,000 INR to USD for our marketing campaign."
+}
+
+selected_sample = st.selectbox("Choose a test case:", list(samples.keys()))
+query_value = samples[selected_sample] if selected_sample != "Select a sample query..." else ""
+user_query = st.text_input("📝 Enter your request:", value=query_value, placeholder="e.g. Suggest 3 cafes in Mumbai.")
 
 tool_defs = [
     GitHubTool().get_definition(), WeatherTool().get_definition(),
@@ -79,42 +108,51 @@ tool_defs = [
     CompatibilityTool().get_definition(), DatePlannerTool().get_definition()
 ]
 
-user_query = st.text_input("Enter your request:", placeholder="e.g. Is the weather in Delhi good for a date tonight?")
-
+# --- MAIN AGENT LOOP ---
 if st.button("Run AI Agent"):
     if user_query:
         try:
-            with st.status("🤖 Agent is processing...", expanded=True) as status:
+            with st.status("🤖 Agent Swarm Processing...", expanded=True) as status:
                 # 1. Planning
-                st.write("🧠 Planning steps...")
-                plan = get_ai_plan(user_query, tool_defs)
+                st.write("🧠 **Planner Agent** is breaking down the request...")
+                plan, plan_metadata = get_ai_plan(user_query, tool_defs)
+                plan_cost = calculate_cost(plan_metadata)
                 
                 # 2. Execution
-                st.write("⚙️ Executing tools...")
+                st.write("⚙️ **Executor Agent** is firing tools in parallel...")
                 results = get_ai_execution(json.dumps(plan))
                 
-                # 3. Verification & Cost Extraction
-                st.write("🔍 Verifying results...")
-                final_text, metadata = get_ai_verification(user_query, json.dumps(results))
+                # 3. Verification
+                st.write("🔍 **Verifier Agent** is synthesizing the final response...")
+                final_output = get_ai_verification(user_query, json.dumps(results))
                 
-                # Calculate and store cost
-                req_cost = calculate_cost(metadata)
-                st.session_state.total_cost += req_cost
-                
-                status.update(label=f"✅ Task Complete! (Cost: ${req_cost:.6f})", state="complete")
+                status.update(label=f"✅ Task Complete!", state="complete")
 
-            # Final Result Display
-            st.subheader("Final Answer")
-            try:
-                parsed = json.loads(final_text)
-                st.success(parsed.get('final_answer', final_text))
-            except:
-                st.success(final_text)
+            # Update Session State before rerun
+            st.session_state.total_cost += plan_cost
+            st.session_state.last_query = user_query
             
-            # Show breakdown
-            st.caption(f"Tokens Used: {metadata.total_token_count} (Input: {metadata.prompt_token_count}, Output: {metadata.candidates_token_count})")
+            if isinstance(final_output, dict):
+                st.session_state.last_answer = final_output.get('final_answer', "No response generated.")
+            else:
+                st.session_state.last_answer = final_output
+            
+            # This triggers the sidebar cost to update immediately
+            st.rerun()
 
         except exceptions.ResourceExhausted:
-            st.error("⚠️ Quota Exceeded. Please wait 30s.")
+            st.error("⚠️ Quota Exceeded. Please wait 30 seconds.")
         except Exception as e:
             st.error(f"An unexpected error occurred: {e}")
+
+# --- PERSISTENT DISPLAY (Outside the button block) ---
+if st.session_state.last_answer:
+    st.divider()
+    st.subheader("💌 Final Answer")
+    st.success(st.session_state.last_answer)
+    st.caption(f"Query processed by: **Planner**, **Executor**, and **Verifier** agents.")
+    
+    # Optional: Show detailed breakdown in an expander that stays visible
+    with st.expander("🔍 System Trace & Insights"):
+        st.write(f"**Last Query:** {st.session_state.last_query}")
+        st.write(f"**Session Economics:** Cumulative Spend is ${st.session_state.total_cost:.6f}")

@@ -8,7 +8,9 @@ load_dotenv()
 class LLMClient:
     def __init__(self):
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-        self.model_name = "gemini-3-flash-preview"
+        # self.model_name = "gemini-3-flash-preview"
+        # self.model_name = "gemini-2.5-flash"
+        self.model_name = "gemini-2.5-flash-lite"
 
     def chat(self, messages, json_mode=False):
         system_instruction = ""
