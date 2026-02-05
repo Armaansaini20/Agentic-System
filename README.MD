@@ -54,7 +54,7 @@ OPENWEATHER_API_KEY=your_weather_key_here
 🔌 Integrated APIs & ToolsToolSourcePurposeDate PlannerTomTom/GoogleFinds romantic venues in specific locations.CompatibilityCustom LogicCalculates "Match Scores" based on user interests.WeatherOpenWeatherChecks date suitability for outdoor activities.NewsGNews/NewsAPIProvides context for social media/ops updates.CurrencyExchangeRate-APIHelps with international marketing budget planning.💡 Example Prompts to TestThe Matchmaker: "I matched with someone who loves Sushi and Hiking in Bangalore. Suggest a compatibility score and 3 cafes for our first date."The Ops Manager: "What is the current weather in Mumbai, and is it a good day for an outdoor rooftop event?"The Multi-Tasker: "Convert 10,000 INR to USD and show me the latest tech news in India for our social media update."# ❤️ TrulyMadly AI Ops Assistant
 
 An intelligent, multi-agent orchestration system designed to automate matchmaking logic, date planning, and complex operational tasks. Built with **Google Gemini 3 Flash**, this assistant utilizes a robust "Planner-Executor-Verifier" architecture to handle multi-step user requests with high efficiency.
-
+```
 ---
 
 ## 🚀 Features
@@ -105,3 +105,4 @@ TOMTOM_API_KEY=your_tomtom_api_key_here
 OPENWEATHER_API_KEY=your_weather_key_here
 # Optional: Add GitHub or News API keys if applicable
 🔌 Integrated APIs & ToolsToolSourcePurposeDate PlannerTomTom/GoogleFinds romantic venues in specific locations.CompatibilityCustom LogicCalculates "Match Scores" based on user interests.WeatherOpenWeatherChecks date suitability for outdoor activities.NewsGNews/NewsAPIProvides context for social media/ops updates.CurrencyExchangeRate-APIHelps with international marketing budget planning.💡 Example Prompts to TestThe Matchmaker: "I matched with someone who loves Sushi and Hiking in Bangalore. Suggest a compatibility score and 3 cafes for our first date."The Ops Manager: "What is the current weather in Mumbai, and is it a good day for an outdoor rooftop event?"The Multi-Tasker: "Convert 10,000 INR to USD and show me the latest tech news in India for our social media update."
+
